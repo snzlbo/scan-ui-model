@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <title>ヤクルト</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <div class="countdown__absolute">
+      <div class="countdown__wrapper text-center" id="countdown">
+        <div class="countdown_number" id="countdown_number"></div>
+        <img src="./img/count.gif" class="hidden" />
+        <img src="./img/btn.png" class="hidden" />
+        <img src="./img/comment03.png" class="hidden" />
+        <img src="./img/comment04.png" class="hidden" />
+      </div>
+    </div>
+    <div class="top__wrapper">
+      <div><div><img class="title-logo" src="/img/kv_lower.jpg" /></div></div>
+    </div>
+    <div class="camera__screen">
+      <div class="camera__wrapper" id="camera">
+        <div class="outline__wrapper">
+          <img class="error-img" id="error-img" src="" />
+          <img class="guide-img" id="guide-img" src="" />
+          <div class="title text-center" id="loading_text">
+            カメラ起動中​しばらくお待ちください
+          </div>
+          <img src="" id="outline" class="outline" />
+        </div>
+      </div>
+      <video id="video"></video>
+      <div class="loading hidden">
+        <div class="uil-ring-css" style="transform: scale(0.6)">
+          <div></div>
+        </div>
+        <div class="loading-overlay-text title text-center">
+          アップロード中です。<br />
+          そのままお待ちください。
+        </div>
+      </div>
+    </div>
+  </body>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.26.0/axios.min.js"
+    integrity="sha512-bPh3uwgU5qEMipS/VOmRqynnMXGGSRv+72H/N260MQeXZIK4PG48401Bsby9Nq5P5fz7hy5UGNmC/W1Z51h2GQ=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/3.13.0/tf.min.js"
+    integrity="sha512-IqXKkKYVfM/j601GSGhG3Qtc3Jc/pkjU1GqyJk7TrM1JQJItuUZTeO012C+qqaRQZiNjOp5kwg7gpvpa3DD6Tw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/globals.js"></script>
+  <script src="./js/camera.js"></script>
+  <script src="./js/model.js"></script>
+  <script>
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    const API_URL = apiUri();
+    let pollingID;
+    let model;
+    let outline = document.getElementById("outline");
+    let guideImg = document.getElementById("guide-img");
+    let errorImg = document.getElementById("error-img");
+    let limitTime = 0;
+    let confidenceScore = 0;
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      camera();
+      // DA reserved start
+      // ユーザ登録とモデルロード
+      //userRegister(`${API_URL}/user_register`, params.asahi_id);
+      const modelPathDB = 'indexeddb://yakult_model_2404';
+      try {
+        model = await tf.loadGraphModel(modelPathDB);
+        // モデルの読み込みに成功した場合の処理
+        console.log('モデルの読み込みに成功しました。');
+      } catch (error) {
+        // エラーハンドリング
+        const modelPath = modelUri();
+        console.log('new');
+        console.log(modelPath);
+        console.log(modelPathDB);
+        model = await tf.loadGraphModel(modelPath);
+        model.save(modelPathDB);
+        console.log('モデルのキャッシュに入れました');
+      }
+      // DA reserved end
+      // interval
+      (function polling() {
+        takePicture();
+        pollingID = setTimeout(polling, 1500);
+        limitTime++;
+      })();
+    });
+    
+    // DA reserved start
+    // アサヒSD（対象商品）であるか確認する関数
+    async function checkAsahi(frame) {
+      let tensor = tf.browser
+        .fromPixels(frame, 3)
+        .resizeNearestNeighbor([224, 224])
+        .expandDims()
+        .toFloat().div(255.0); // RGB -> BGR
+      let predictions = await model.predict(tensor).data();
+      tf.dispose(tensor);
+      // {'background': 0,
+      //  'new_yakult': 1,
+      //  'tenpo_yakult_1000': 2,
+      //  'yakult_1000': 3,
+      //  'yakult_400': 4,
+      //  'yakult_400LT': 5,
+      //  'yakult_400W': 6,
+      //  'yakult_calorie_half': 7,
+      //  'yakult_five': 8}
+      let result = predictions[3];
+      if (predictions[6] > predictions[3]) {
+        result = predictions[6];
+        console.log("yakult_400W");
+      }
+      console.log(result);
+      return result;
+    }
+    // DA reserved end
+
+    function takePicture() {
+      let loadingText = document.getElementById("loading_text");
+      if (loadingText) {
+        loadingText.parentNode.removeChild(loadingText);
+      }
+      outline.src = `./img/${params.size}_white.png`;
+      guideImg.src = "/img/comment01.png";
+      errorImg.src = "/img/error_face01.png";
+      const video = document.getElementById("video");
+      const canvas = document.createElement("canvas");
+      const countdown = document.getElementById("countdown");
+      const countdownNumber = document.getElementById("countdown_number");
+      canvas.width = video.clientWidth;
+      canvas.height = (video.clientWidth / 9) * 13.5;
+      canvas
+        .getContext("2d")
+        .drawImage(video, 0, 0, canvas.width, canvas.height);
+      // DA reserved start 
+      // モデルを動かして対象商品であればボタンをトリガーする部分
+      if (model) {
+        checkAsahi(canvas).then(async (result) => {
+          if (limitTime * 1500 < 0.5 * 60 * 1000) {
+            if (result > 0.45) {
+              countdown.className += " countdown__reveal";
+              countdownNumber.innerHTML =
+                "<button class='take-button' id='take-button' onclick='takePictureButton()'><img class='take-button-img' src='./img/btn.png' /></button><div class='take-guide'><img class='take-guide-img' src='/img/comment03.png' /></div>";
+              confidenceScore = result;
+            }
+          // DA reserved end
+          } else {
+            // if timeout expired clear polling
+            clearTimeout(pollingID);
+            // write timeout here
+          }
+        });
+      }
+    }
+    async function takePictureButton() {
+      const button = document.getElementById("take-button");
+      button.disabled = true;
+      clearTimeout(pollingID);
+      const countdownNumber = document.getElementById("countdown_number");
+      await sleep(1000);
+      countdownNumber.innerHTML =
+        "<img class='countdown-img' src='/img/count.gif' /><div class='take-guide'><img class='take-guide-img' src='/img/comment04.png' /></div>";
+      await sleep(3000);
+      
+      // DA reserved start
+      // ユーザが撮った写真をDAへ送る部分
+      const canvas = document.createElement("canvas");
+      canvas.width = video.clientWidth;
+      canvas.height = (video.clientWidth / 9) * 13;
+      canvas
+        .getContext("2d")
+        .drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        const formData = new FormData();
+        formData.append("file", blob, "file.jpg");
+        formData.append("asahi_id", params.asahi_id);
+        formData.append("sd_confidence", confidenceScore);
+        entryRegister(`${API_URL}/entry_register`, formData);
+      });
+      // DA reserved end
+    }
+  </script>
+</html>

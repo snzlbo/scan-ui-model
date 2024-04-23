@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <title>ヤクルト</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <div class="countdown__absolute">
+      <div class="countdown__wrapper text-center" id="countdown">
+        <div class="countdown_number" id="countdown_number">
+          <button class='take-button' id='take-button' onclick='takePictureButton()'>
+            <img class='take-button-img' src='./img/btn.png' />
+          </button>
+          <div class='take-guide'>
+            <img class='take-guide-img' src='./img/comment03.png' />
+          </div>
+        </div>
+        <img src="./img/count.gif" class="hidden" />
+        <img src="./img/btn.png" class="hidden" />
+        <img src="./img/comment03.png" class="hidden" />
+        <img src="./img/comment04.png" class="hidden" />
+      </div>
+    </div>
+    <div class="top__wrapper">
+      <div><div><img class="title-logo" src="/img/kv_lower.jpg" /></div></div>
+    </div>
+    <div class="camera__screen" >
+      <div class="camera__wrapper" id="camera">
+        <div class="outline__wrapper">
+          <img class="error-img hidden" id="error-img" src="./img/error_face01.png">
+          <img class="guide-img" id="guide-img" src="" />
+          <div class="title text-center" id="loading_text">
+            カメラ起動中​しばらくお待ちください
+          </div>
+          <img src="" id="outline" class="outline hidden" />
+          <img src="" id="animation" class="animation hidden" />
+        </div>
+      </div>
+      <video id="video"></video>
+      <div class="loading hidden">
+        <div class="uil-ring-css" style="transform: scale(0.6)">
+          <div></div>
+        </div>
+        <div class="loading-overlay-text title text-center">
+          アップロード中です。<br />
+          そのままお待ちください。
+        </div>
+      </div>
+    </div>
+  </body>
+  <!-- <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.26.0/axios.min.js"
+    integrity="sha512-bPh3uwgU5qEMipS/VOmRqynnMXGGSRv+72H/N260MQeXZIK4PG48401Bsby9Nq5P5fz7hy5UGNmC/W1Z51h2GQ=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/3.13.0/tf.min.js"
+    integrity="sha512-IqXKkKYVfM/j601GSGhG3Qtc3Jc/pkjU1GqyJk7TrM1JQJItuUZTeO012C+qqaRQZiNjOp5kwg7gpvpa3DD6Tw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.17.0/tf.min.js"
+    integrity="sha512-DmFGbzCxxUO+X0GpLP1nVvdW/0VSx+k16xnNGNf94wr23jp14BXHzvEzmQ7nC/QijHtraOU1LyhsUEyHDIr4IQ=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"
+    integrity="sha512-PJa3oQSLWRB7wHZ7GQ/g+qyv6r4mbuhmiDb8BjSFZ8NZ2a42oTtAq5n0ucWAwcQDlikAtkub+tPVCw4np27WCg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+  <script src="./js/appHeight.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/globals.js"></script>
+  <script src="./js/camera.js"></script>
+  <script src="./js/model.js"></script>
+  <script>
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    const API_URL = apiUri();
+    let pollingIDProductDetection;
+    let pollingIDFaceDetection;
+    let mainModel;
+    let faceModel;
+    let outlineElement = document.getElementById("outline");
+    let guideImgElement = document.getElementById("guide-img");
+    let errorImgElement = document.getElementById("error-img");
+    let animationElement = document.getElementById("animation");
+    const countdownElement = document.getElementById("countdown");
+    const countdownNumberElement = document.getElementById("countdown_number");
+    const video = document.getElementById("video");
+    const canvas = document.createElement("canvas");
+    let checkPeriod = 1000;
+    let faceModelCheckLimit = 0.5;
+    let productModelCheckLimit = 0.45;
+    let limitTime = 0;
+    let productConfidenceResult = 0;
+    if (Object.hasOwnProperty.call(params, 'checkPeriod') && typeof params.checkPeriod !== 'undefined' && !isNaN(params.checkPeriod)) {
+      checkPeriod = parseInt(params.checkPeriod);
+    }
+    if (Object.hasOwnProperty.call(params, 'faceModelCheckLimit') && typeof params.faceModelCheckLimit !== 'undefined' && !isNaN(params.faceModelCheckLimit)) {
+      faceModelCheckLimit = parseFloat(params.faceModelCheckLimit);
+    }
+    if (Object.hasOwnProperty.call(params, 'productModelCheckLimit') && typeof params.productModelCheckLimit !== 'undefined' && !isNaN(params.productModelCheckLimit)) {
+      productModelCheckLimit = parseFloat(params.productModelCheckLimit);
+    }
+    console.log("🚀 ~ checkPeriod:", checkPeriod)
+    if (document.readyState !== 'loading') {
+      appHeight();
+    }
+
+    document.addEventListener("DOMContentLoaded", async function () {
+      preloadBasedOnDate()
+      outlineElement.src = `./img/${params.size}_white.png`;
+      guideImgElement.src = "./img/comment01.png";
+      // const start 
+      // DA reserved start
+      // ユーザ登録とモデルロード
+      [mainModel, faceModel] = await Promise.all([
+        loadTensorFlowModel(MAIN_MODEL_DB_PATH, MAIN_MODEL_FILE_PATH),
+        loadTensorFlowModel(FACE_MODEL_DB_PATH, FACE_MODEL_FILE_PATH),
+      ]);
+      camera();
+      appHeight();
+      // appHeight();
+      // DA reserved end
+      // interval
+      (function pollingProductDetection() {
+        checkProduct();
+        pollingIDProductDetection = setTimeout(pollingProductDetection, checkPeriod);
+        limitTime += checkPeriod / 1000;
+      })();
+      setTimeout(() => {
+        (function pollingFaceDetection() {
+          checkFace();
+          pollingIDFaceDetection = setTimeout(pollingFaceDetection, checkPeriod);
+        })();
+      }, 500);
+    });
+    // DA reserved end
+
+    function checkProduct() {
+      outlineElement.src = `./img/${params.size}_white.png`;
+      outlineElement.classList.remove("hidden");
+      guideImgElement.src = "./img/comment01.png";
+      // DA reserved start 
+      // モデルを動かして対象商品であればボタンをトリガーする部分
+      let loadingText = document.getElementById("loading_text");
+      if (loadingText) {
+        loadingText.parentNode.removeChild(loadingText);
+        appHeight()
+      }
+      // !!remove
+      console.log("🚀 ~ limitTime:", limitTime)
+      console.log(" ---- faceModelCheckLimit:", faceModelCheckLimit)
+      console.log(" ---- productModelCheckLimit:", productModelCheckLimit)
+      console.log(" ---- checkPeriod:", checkPeriod)
+      if (mainModel) {
+        if (limitTime * checkPeriod < ((checkPeriod % 1000) ? (checkPeriod/1000) : 1) * 60 * 1000) {
+          checkProductTFJS(canvas, video, mainModel).then(async (result) => {
+            console.log("🚀 ~ checkProductTFJS:", result)
+            productConfidenceResult = result;
+          // DA reserved end
+          });
+        } else {
+          // if timeout expired clear polling
+          clearTimeout(pollingIDProductDetection);
+          // write timeout here
+        }
+      }
+    }
+    function checkFace() {
+      // DA reserved start 
+      if (faceModel) {
+        if (limitTime * checkPeriod < ((checkPeriod % 1000) ? (checkPeriod/1000) : 1) * 60 * 1000) {
+          checkFaceTFJS(canvas, video, faceModel).then(async (result) => {
+            console.log("🚀 ~ checkFaceTFJS:", result)
+            // if (result.product > 0.45) {
+            if (result > faceModelCheckLimit) {
+              errorImgElement.classList.remove("hidden");
+              countdownElement.classList.remove("countdown__reveal");
+              countdownNumberElement.classList.add("hidden")
+            } else {
+              errorImgElement.classList.add("hidden");
+              if (productConfidenceResult > productModelCheckLimit) {
+                countdownElement.classList.add("countdown__reveal");
+                countdownNumberElement.classList.remove("hidden")
+              } else {
+                countdownElement.classList.remove("countdown__reveal");
+                countdownNumberElement.classList.add("hidden")
+              
+              }
+            }
+          // DA reserved end
+          });
+        } else {
+          // if timeout expired clear polling
+          clearTimeout(pollingIDFaceDetection);
+          // write timeout here
+        }
+      }
+    }
+    async function takePictureButton() {
+      const takeButtonElement = document.getElementById("take-button");
+      takeButtonElement.disabled = true;
+      clearTimeout(pollingIDFaceDetection);
+      clearTimeout(pollingIDProductDetection);
+      // const countdownNumber = document.getElementById("countdown_number");
+      await sleep(1000);
+      countdownNumberElement.innerHTML =
+        "<img class='countdown-img' src='/img/count.gif' /><div class='take-guide'><img class='take-guide-img' src='/img/comment04.png' /></div>";
+      await sleep(3000);
+      countdownNumberElement.innerHTML = "";
+      guideImgElement.style.display = "none";
+      const mCanvas = captureCanvas(canvas, video);
+      mCanvas.toBlob(async (blob) => {
+        outlineElement.classList.add("hidden");
+        animationElement.classList.remove("hidden");
+        animationElement.src = getAnimation()
+        await sleep(12000);
+        animationElement.classList.add("hidden");
+        // DA reserved start
+        // // ユーザが撮った写真をDAへ送る部分
+        // const tempUrl = URL.createObjectURL(blob);
+        // window.location = tempUrl
+        const formData = new FormData();
+        formData.append("file", blob, "file.jpg");
+        formData.append("user_id", params.user_id);
+        formData.append("sd_confidence", productConfidenceResult);
+        entryRegister(`${API_URL}/entry_register`, formData);
+      });
+      // DA reserved end
+    }
+  </script>
+</html>

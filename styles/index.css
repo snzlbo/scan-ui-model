@@ -1,0 +1,346 @@
+@charset "UTF-8";
+/*
+html5doctor.com Reset Stylesheet
+v1.6.1
+Last Updated: 2010-09-17
+Author: Richard Clark - http://richclarkdesign.com
+Twitter: @rich_clark
+*/
+html, body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+abbr, address, cite, code,
+del, dfn, em, img, ins, kbd, q, samp,
+small, strong, sub, sup, var,
+b, i,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+}
+
+body {
+  line-height: 1;
+}
+
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+nav ul {
+  list-style: none;
+}
+
+blockquote, q {
+  quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
+}
+
+a {
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+}
+
+/* change colours to suit your needs */
+ins {
+  background-color: #ff9;
+  color: #000;
+  text-decoration: none;
+}
+
+/* change colours to suit your needs */
+mark {
+  background-color: #ff9;
+  color: #000;
+  font-style: italic;
+  font-weight: bold;
+}
+
+del {
+  text-decoration: line-through;
+}
+
+abbr[title], dfn[title] {
+  border-bottom: 1px dotted;
+  cursor: help;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* change border colour to suit your needs */
+hr {
+  display: block;
+  height: 1px;
+  border: 0;
+  border-top: 1px solid #CCCCCC;
+  margin: 1em 0;
+  padding: 0;
+}
+
+input, select {
+  vertical-align: middle;
+}
+
+/*COMMON-----------------------------------------------------------------------------------------------------------------*/
+/* --------------------
+リセット追加
+-------------------- */
+input[type="text"], input[type="password"], input[type="submit"], input[type="button"], input[type="tel"], input[type="mail"], input[type="email"], textarea, select, button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 100%;
+  outline: none;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+input[type="submit"], input[type="button"], button {
+  cursor: pointer;
+}
+
+input:-ms-input-placeholder {
+  color: #333;
+  font-size: 0.875rem;
+}
+
+input::placeholder {
+  color: #333;
+  font-size: 0.875rem;
+}
+
+ul, ol, li {
+  list-style: none;
+}
+
+/* --------------------
+基本設定
+-------------------- */
+html {
+  overflow-y: scroll;
+}
+
+html.msie body {
+  font-size: 100%;
+}
+
+html.no-msie body {
+  font-size: 16px;
+}
+
+html.iphone a:hover, html.ipod a:hover, html.ipad a:hover, html.android a:hover {
+  opacity: 1.0 !important;
+}
+
+html.iphone a:hover img, html.ipod a:hover img, html.ipad a:hover img, html.android a:hover img {
+  opacity: 1.0 !important;
+}
+
+body {
+  background: var(--bg-color);
+  color: var(--txt-color);
+  text-align: center;
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", sans-serif;
+  font-weight: normal;
+  line-height: 1.4;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: unset;
+}
+
+@media only screen and (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+a {
+  text-decoration: none;
+}
+
+a:link, a:visited {
+  color: var(--txt-color);
+}
+
+a:hover, a:active {
+  color: var(--txt-color);
+}
+
+img {
+  margin: 0 auto;
+  display: block;
+  vertical-align: bottom;
+  width: 100%;
+  height: auto;
+}
+
+.TxtRed {
+  color: #da2129;
+}
+
+/*ページレイアウト*/
+:root {
+  --bg-color: #FFF;
+  --txt-color: #000;
+  --key-color: #06C755;
+  --btn-color: #fff;
+  --border-color: #b3b3b3;
+}
+
+
+
+/*ヘッダー*/
+#LowerHeader {
+  width: 100%;
+  max-width: 750px;
+  margin: 0 auto;
+}
+
+/*フッター*/
+#CommonFooter {
+  margin: 0 auto;
+  padding: 0 0 15px;
+  border-top: 2px solid var(--key-color);
+  width: 100%;
+  max-width: 750px;
+}
+
+#CommonFooter .FooterID {
+  padding: 15px 0  0;
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+
+#CommonFooter .FooterID span {
+  padding: 3px 13px;
+  display: inline-block;
+  border: 1px solid var(--txt-color);
+  border-radius: 300px;
+}
+
+#CommonFooter aside {
+  padding: 15px 0 0;
+  font-size: 0.6875rem;
+}
+
+/*ページタイトル*/
+article h1 {
+  width: 100%;
+  position: relative;
+  font-size: 1.6875rem;
+  font-weight: bold;
+}
+
+article h1 span {
+  letter-spacing: -0.2em;
+}
+
+@media (max-width: 374px) {
+  article h1 {
+    font-size: 1.5rem;
+    letter-spacing: -0.05em;
+  }
+}
+
+article h1.TitLine {
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--txt-color);
+}
+
+article h1.TitLine::after {
+  content: '';
+  width: 15px;
+  height: 15px;
+  display: block;
+  background: var(--bg-color);
+  border: 2px solid var(--txt-color);
+  border-top: none;
+  border-right: none;
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  transform: translate(-50%, 0) rotate(-45deg);
+}
+
+/*下層基本レイアウト*/
+#LowerBody {
+  padding: 45px 20px 30px;
+  width: 100%;
+  max-width: 750px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  border-top: 2px solid var(--key-color);
+}
+
+@media (max-width: 374px) {
+  #LowerBody {
+    padding: 45px 15px 30px;
+  }
+}
+
+#LowerBody.LowerBodyWh {
+  /*background: #fff;*/
+  color: #000;
+}
+
+#LowerBody p {
+  padding: 15px 0 0;
+  font-size: 0.9375rem;
+}
+
+#LowerBody p .TxtBold {
+  font-weight: bold;
+}
+
+/*下層 抽選*/
+.LoadPic {
+  padding: 30px 0 15px;
+  margin: 0 auto;
+}
+
+.LoadPic div {
+  width: 100px;
+  margin: 0 auto;
+}
+
+.LoadPic p {
+  padding: 0 !important;
+  margin: 0 auto !important;
+  font-size: 0.75rem !important;
+}
+
+.LoadCopy p {
+  padding: 0 !important;
+  margin: 0 auto !important;
+  font-size: 0.875rem !important;
+}

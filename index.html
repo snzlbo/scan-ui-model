@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,minimum-scale=1.0,maximum-scale=1.6,user-scalable=yes"
+    />
+    <meta name="format-detection" content="telephone=no" />
+    <link href="/styles/index.css" rel="stylesheet" type="text/css" />
+    <title>ヤクルト</title>
+    <meta name="robots" content="noindex,nofollow" />
+  </head>
+  <body>
+    <header id="LowerHeader">
+      <h1>
+          <img src="images/kv_lower.jpg" alt="">
+      </h1>
+  </header>
+    <article id="LowerBody" class="LowerBodyWh">
+      <h1 class="LoadTitle">カメラ起動中</h1>
+      <div class="LoadPic">
+        <div>
+          <img src="images/loading.gif" alt="">
+        </div>
+        <p>&nbsp;</p>
+      </div>
+      <div class="LoadCopy">
+        <p>カメラの起動に時間がかかることがございます。<br>そのまましばらくお待ちください。</p>
+      </div>
+    </article>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.17.0/tf.min.js"
+    integrity="sha512-DmFGbzCxxUO+X0GpLP1nVvdW/0VSx+k16xnNGNf94wr23jp14BXHzvEzmQ7nC/QijHtraOU1LyhsUEyHDIr4IQ=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  ></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/globals.js"></script>
+    <script src="./js/model.js"></script>
+    <script>
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const params = Object.fromEntries(urlSearchParams.entries());
+      document.addEventListener("DOMContentLoaded", async function () {
+        // DA reserved start
+        // モデルロードして画面遷移部分
+        // let t0 = performance.now();
+        await loadTensorFlowModel(MAIN_MODEL_DB_PATH, MAIN_MODEL_FILE_PATH)
+        window.location = `camera.html?size=350&user_id=${params.user_id}`;
+        // DA reserved end
+      });
+    </script>
+  </body>
+</html>
